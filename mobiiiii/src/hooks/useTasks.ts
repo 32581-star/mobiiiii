@@ -19,13 +19,49 @@ export function useTasks(): UseTasksReturn {
       const data = await fetchAllTasks(signal);
       setTasks(data);
     } catch (err) {
-      if (err.instaceof Error && err.name === "AbortError") return;
+      if (err instanceof Error && err.name === "AbortError") return;
       setError(MESSAGES.ERROR_LOAD);
       console.error("Erro: ", err);
     } finally {
       setLoading(false);
     }
-  })
+
+    },
+    [],
+  );
+
+  //Criar uma nova tarefa
+  const createTask = useCallback (
+    async(taskData : TaskFormData) : Promise<boolean => {
+      if (!taskData.title.trim()) {
+        setError(MESSAGES.EMPTY_TITLE);
+        return false;
+      }
+      setSubmitting(true);
+      set(null);
+      try{
+        const newTask = await createTaskRequest(taskData);
+        setTasks ((prev) => [...prev, newTask])
+      }
+    }
+  )
+
+  //Atualiza uma tarefa esistente 
+  const updateTask = useCallback(
+    async (id: number, taskData: TaskFormData) :Promise<boolean> => {
+      if(!taskData.title.trim()){
+        setError(MESSAGES.EMPTY_TITLE);
+        return false
+      }
+      setSubmitting(true);
+      setError(null);
+      try {
+        const updated = await updateTaskRequest(id,taskData);
+        setTasks((prev) => prev.map((t) => (t.id === id ? updated : t)))
+        return true;
+      } catch
+    }
+  )
 
 
   // Função para carregar tarefas
